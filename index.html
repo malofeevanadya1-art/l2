@@ -1,3 +1,4 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -30,4 +31,30 @@
     <h1>Review Analyzer</h1>
 
     <div class="row">
-      <input id="api-token" type="text" placeholder="
+      <input id="api-token" type="text" placeholder="Hugging Face token (hf_...)" autocomplete="off" />
+      <span id="spinner"><i class="fa-solid fa-spinner fa-spin"></i> Working…</span>
+    </div>
+
+    <div class="row">
+      <button id="btn-rand">Select Random Review</button>
+      <button id="btn-sent">Analyze Sentiment</button>
+      <button id="btn-noun">Count Nouns</button>
+    </div>
+
+    <div id="error" class="mono"></div>
+
+    <div class="card" style="margin-top:14px">
+      <div class="label">Selected review</div>
+      <div id="review" class="mono muted"></div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <div class="stat"><strong>Sentiment:</strong> <span id="sentiment">—</span></div>
+      <div class="stat"><strong>Noun count level:</strong> <span id="noun">—</span></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="app.js" defer></script>
+</body>
+</html>
