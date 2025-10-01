@@ -6,7 +6,7 @@ Context
 • Data file: reviews_test.tsv (has a text column)
 • Papa Parse via CDN must load & parse TSV.
 • One optional input field for Hugging Face API token.
-• Use ONE model endpoint: https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3
+• Use ONE model endpoint: https://api-inference.huggingface.co/models/tiiuae/falcon-7b-instruct
 
 – task = text-generation
 – Request body:
@@ -55,7 +55,7 @@ index.html
 app.js
 – TSV fetch + Papa Parse → reviews array.
 – Event handlers for each button.
-– Shared callApi(prompt) function that POSTs to the Mistral endpoint; include Authorization: Bearer <token> only if token input is non-empty.
+– Shared callApi(prompt) function that POSTs to the Falcon endpoint; include Authorization: Bearer <token> only if token input is non-empty.
 – Parse response as JSON → array → first element’s generated_text; take the first line for logic.
 – Sentiment logic:
 
