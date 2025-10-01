@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Review Analyzer</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+  :root{--bg:#0f1115;--fg:#e7e9ee;--muted:#a7adba;--card:#161a22;--b:#222838;--ok:#22c55e;--mid:#eab308;--bad:#ef4444}
+  *{box-sizing:border-box}html,body{height:100%}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
+  .wrap{max-width:880px;margin:40px auto;padding:20px}
+  .card{background:var(--card);border:1px solid var(--b);border-radius:16px;padding:20px}
+  h1{margin:0 0 14px;font-size:22px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  input[type=text]{flex:1;min-width:220px;background:#0c1017;border:1px solid var(--b);color:var(--fg);padding:10px 12px;border-radius:10px}
+  .btn{background:#1f2633;border:0;color:var(--fg);padding:10px 14px;border-radius:10px;cursor:pointer}
+  .btn:disabled{opacity:.6;cursor:not-allowed}
+  .spinner{display:none;gap:8px;align-items:center}
+  .spinner.show{display:inline-flex}
+  .muted{color:var(--muted)}
+  .grid{display:grid;gap:10px;margin-top:12px}
+  .label{font-size:13px;color:var(--muted)}
+  .box{background:#0c1017;border:1px solid var(--b);border-radius:10px;padding:12px;white-space:pre-wrap;min-height:48px}
+  .kpi{display:flex;gap:10px;align-items:center}
+  .err{display:none;margin-top:10px;padding:10px;border-radius:10px;background:#3b1f20;border:1px solid #5a2a2c}
+  .err.show{display:block}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1><i class="fa-solid fa-magnifying-glass-chart"></i> Review Analyzer</h1>
+    <div class="row">
+      <input id="api-token" type="text" placeholder="Hugging Face API token (optional)"/>
+      <button id="btn-rand" class="btn"><i class="fa-solid fa-shuffle"></i> Select Random Review</button>
+      <button id="btn-sent" class="btn"><i class="fa-regular fa-face-smile"></i> Analyze Sentiment</button>
+      <button id="btn-noun" class="btn"><i class="fa-solid fa-list-ol"></i> Count Nouns</button>
+      <span id="spinner" class="spinner"><i class="fa-solid fa-rotate fa-spin"></i><span class="muted">Working…</span></span>
+    </div>
+    <div class="grid">
+      <div>
+        <div class="label">Selected review</div>
+        <div id="review" class="box"></div>
+      </div>
+      <div class="kpi">
+        <div class="label">Sentiment:</div><div id="sentiment" style="font-size:20px">—</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Noun count level:</div><div id="noun" style="font-size:20px">—</div>
+      </div>
+      <div id="error" class="err"></div>
+    </div>
+  </div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
