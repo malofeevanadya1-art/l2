@@ -2,7 +2,16 @@
 You are an expert JavaScript developer who writes clean, minimal code for GitHub Pages. Follow every requirement exactly—no extra libraries, comments, or text.
 
 **Context**
-• Static site only (index.html + app.js) • Data file: reviews_test.tsv (has a text column) • Papa Parse via CDN must load & parse TSV. • One optional input field for Hugging Face API token. • Use ONE free model endpoint: https://api-inference.huggingface.co/models/tiiuae/falcon-7b-instruct   – task =text-generation (request body { "inputs": PROMPT })  
+• Static site only (index.html + app.js) • Data file: reviews_test.tsv (has a text column) • Papa Parse via CDN must load & parse TSV. • One optional input field for Hugging Face API token. • Use ONE free model endpoint: https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3
+– task = text-generation
+– Request body:{
+  "inputs": PROMPT,
+  "parameters": { "max_new_tokens": 8, "temperature": 0, "return_full_text": false },
+  "options": { "wait_for_model": true }
+}
+– Headers:
+Content-Type: application/json
+Authorization: Bearer <token> (only if token field not empty)
 • UI buttons  
   1. Select Random Review  → show random review text.  
   2. Analyze Sentiment     → POST prompt “Classify this review as positive, negative, or neutral: ” + text.  
@@ -29,8 +38,18 @@ Generate the complete code for “Review Analyzer”:
    – TSV fetch + Papa Parse → reviews array.  
    – Event handlers for each button.  
    – Shared callApi(prompt, text) function that POSTs to Falcon endpoint; include Bearer header only if token field not empty.  
-   – Sentiment logic: ????
-   – Noun-level logic: ????
+   – Sentiment logic:
+if (line.includes("positive")) return "👍"; 
+if (line.includes("negative")) return "👎"; 
+if (line.includes("neutral")) return "❓"; 
+return "❓";
+
+   – Noun-level logic:
+if (line.startsWith("high")) return "🟢"; 
+if (line.startsWith("medium")) return "🟡"; 
+if (line.startsWith("low")) return "🔴"; 
+return "🔴";
+
    – Graceful error handling & UI reset.
 
 **Output Format**
