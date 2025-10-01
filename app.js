@@ -9,7 +9,7 @@ const btnSent=document.getElementById('btn-sent');
 const btnNoun=document.getElementById('btn-noun');
 const tokenInput=document.getElementById('api-token');
 
-let tokenOK=false; // кэш результата валидации токена
+let tokenOK=false;
 
 function uiLoading(x){[btnRand,btnSent,btnNoun].forEach(b=>b.disabled=x);elSpin.classList.toggle('show',x)}
 function setErr(t){elErr.textContent=t||'';elErr.classList.toggle('show',!!t)}
@@ -21,19 +21,24 @@ function mapNoun(s){if(s.startsWith('high'))return '🟢';if(s.startsWith('mediu
 function getToken(){return (tokenInput.value||'').trim()}
 
 document.addEventListener('DOMContentLoaded',()=>{
-  Papa.parse('reviews_test.tsv',{download:true,header:true,delimiter:'\t',complete:r=>{reviews=(r.data||[]).filter(x=>(x.text||'').trim())}});
+  Papa.parse('reviews_test.tsv',{
+    download:true,header:true,delimiter:'\t',
+    complete:r=>{reviews=(r.data||[]).filter(x=>(x.text||'').trim())}
+  });
   const saved=localStorage.getItem('hfApiToken');if(saved){tokenInput.value=saved}
 });
 
 tokenInput.addEventListener('input',e=>{
   const v=e.target.value.trim();
-  tokenOK=false; // сбрасываем флаг — токен изменился
-  if(v) localStorage.setItem('hfApiToken',v); else localStorage.removeItem('hfApiToken')
+  tokenOK=false;
+  if(v) localStorage.setItem('hfApiToken',v); else localStorage.removeItem('hfApiToken');
 });
 
 btnRand.addEventListener('click',()=>{
   if(!reviews.length){setErr('No data loaded.');return}
-  const row=pick(reviews);elReview.textContent=row.text||'';reset()
+  const row=pick(reviews);
+  elReview.textContent=row.text||'';
+  reset();
 });
 
 btnSent.addEventListener('click',async()=>{
@@ -42,7 +47,7 @@ btnSent.addEventListener('click',async()=>{
   const prompt='return only one word in lowercase on the first line: positive, negative, or neutral. classify this review: '+txt;
   const out=await ensureTokenThenCall(prompt);
   if(out.ok){elSent.textContent=mapSent(firstLineLower(out.text))}else setErr(out.err);
-  uiLoading(false)
+  uiLoading(false);
 });
 
 btnNoun.addEventListener('click',async()=>{
@@ -51,10 +56,9 @@ btnNoun.addEventListener('click',async()=>{
   const prompt='return only one word in lowercase on the first line: high (if nouns>15), medium (6-15), or low (<6). count only nouns (common+proper; exclude pronouns/verbs/adjectives) in this review: '+txt;
   const out=await ensureTokenThenCall(prompt);
   if(out.ok){elNoun.textContent=mapNoun(firstLineLower(out.text))}else setErr(out.err);
-  uiLoading(false)
+  uiLoading(false);
 });
 
-// Валидируем токен один раз (или при изменении)
 async function validateTokenOnce(){
   if(tokenOK) return {ok:true};
   const tok=getToken();
@@ -63,15 +67,9 @@ async function validateTokenOnce(){
     const r=await fetch('https://huggingface.co/api/whoami',{
       headers:{'Authorization':'Bearer '+tok,'Accept':'application/json'}
     });
-    if(!r.ok){
-      const msg=await r.text();
-      return {ok:false,err:'Token check failed: '+r.status+' '+msg};
-    }
-    tokenOK=true;
-    return {ok:true};
-  }catch(_){
-    return {ok:false,err:'Network error while checking token.'};
-  }
+    if(!r.ok){const msg=await r.text();return {ok:false,err:'Token check failed: '+r.status+' '+msg}}
+    tokenOK=true;return {ok:true};
+  }catch(_){return {ok:false,err:'Network error while checking token.'}}
 }
 
 async function ensureTokenThenCall(prompt){
@@ -90,12 +88,14 @@ async function callApi(prompt){
 
     const body={inputs:prompt,parameters:{max_new_tokens:8,temperature:0,return_full_text:false},options:{wait_for_model:true}};
     const res=await fetch(url,{method:'POST',headers,body:JSON.stringify(body)});
-    const raw=await res.text(); // читаем как текст для лучшей диагностики
+    const raw=await res.text();
+
     if(!res.ok){
       if(res.status===402||res.status===429) return {ok:false,err:'Rate limited or payment required. '+raw};
-      if(res.status===401) return {ok:false,err:'Unauthorized (401). Check token permissions and value. '+raw};
-      return {ok:false,err:'API error '+res.status+' '+raw}
+      if(res.status===401) return {ok:false,err:'Unauthorized (401). Check token value and permissions. '+raw};
+      return {ok:false,err:'API error '+res.status+' '+raw};
     }
+
     let data;
     try{data=JSON.parse(raw)}catch(_){return {ok:false,err:'Bad JSON from API: '+raw}}
     if(data&&data.error) return {ok:false,err:String(data.error)};
@@ -103,8 +103,8 @@ async function callApi(prompt){
     if(Array.isArray(data)&&data[0]?.generated_text) text=data[0].generated_text;
     else if(data.generated_text) text=data.generated_text;
     if(!text) return {ok:false,err:'Empty response: '+raw};
-    return {ok:true,text}
+    return {ok:true,text};
   }catch(_){
-    return {ok:false,err:'Network error'}
+    return {ok:false,err:'Network error'};
   }
 }
