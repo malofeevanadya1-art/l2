@@ -1,4 +1,4 @@
-let reviews=[],token='';
+let reviews=[];
 const elReview=document.getElementById('review');
 const elSent=document.getElementById('sentiment');
 const elNoun=document.getElementById('noun');
@@ -19,12 +19,12 @@ function mapNoun(s){if(s.startsWith('high'))return '🟢';if(s.startsWith('mediu
 
 document.addEventListener('DOMContentLoaded',()=>{
   Papa.parse('reviews_test.tsv',{download:true,header:true,delimiter:'\t',complete:r=>{reviews=(r.data||[]).filter(x=>(x.text||'').trim())}});
-  const saved=localStorage.getItem('hfApiToken');if(saved){token=saved;tokenInput.value=saved}
+  const saved=localStorage.getItem('hfApiToken');if(saved){tokenInput.value=saved}
 });
 
-tokenInput.addEventListener('change',e=>{
-  token=e.target.value.trim();
-  if(token) localStorage.setItem('hfApiToken',token); else localStorage.removeItem('hfApiToken')
+tokenInput.addEventListener('input',e=>{
+  const v=e.target.value.trim();
+  if(v) localStorage.setItem('hfApiToken',v); else localStorage.removeItem('hfApiToken')
 });
 
 btnRand.addEventListener('click',()=>{
@@ -35,7 +35,7 @@ btnRand.addEventListener('click',()=>{
 btnSent.addEventListener('click',async()=>{
   const txt=elReview.textContent.trim();if(!txt){setErr('Select a review first.');return}
   reset();uiLoading(true);
-  const prompt='Classify this review as positive, negative, or neutral. Answer with exactly one word in lowercase.\nReview: '+txt;
+  const prompt='Return only one word in lowercase on the first line: positive, negative, or neutral. Classify this review: '+txt;
   const out=await callApi(prompt);
   if(out.ok){elSent.textContent=mapSent(firstLineLower(out.text))}else setErr(out.err);
   uiLoading(false)
@@ -44,7 +44,7 @@ btnSent.addEventListener('click',async()=>{
 btnNoun.addEventListener('click',async()=>{
   const txt=elReview.textContent.trim();if(!txt){setErr('Select a review first.');return}
   reset();uiLoading(true);
-  const prompt='Count the number of nouns in the review (include common and proper nouns; exclude pronouns, verbs, adjectives). Determine category strictly by count: high if count>=15, medium if 6<=count<=15, low if count<=5. Validate your category against the thresholds. Reply with one word only in lowercase: high, medium, or low.\nReview: '+txt;
+  const prompt='Return only one word in lowercase on the first line: high (if nouns>15), medium (6-15), or low (<6). Count nouns (common+proper; exclude pronouns/verbs/adjectives) in this review: '+txt;
   const out=await callApi(prompt);
   if(out.ok){elNoun.textContent=mapNoun(firstLineLower(out.text))}else setErr(out.err);
   uiLoading(false)
@@ -53,8 +53,9 @@ btnNoun.addEventListener('click',async()=>{
 async function callApi(prompt){
   try{
     const url='https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3';
-    const headers={'Content-Type':'application/json'};
-    if(token) headers.Authorization='Bearer '+token;
+    const headers={'Content-Type':'application/json','Accept':'application/json'};
+    const tok=(tokenInput.value||'').trim();
+    if(tok) headers.Authorization='Bearer '+tok;
     const body={inputs:prompt,parameters:{max_new_tokens:8,temperature:0,return_full_text:false},options:{wait_for_model:true}};
     const res=await fetch(url,{method:'POST',headers,body:JSON.stringify(body)});
     if(!res.ok){
@@ -63,9 +64,9 @@ async function callApi(prompt){
       return {ok:false,err:'API error '+res.status}
     }
     const data=await res.json();
-    if(data && data.error) return {ok:false,err:String(data.error)};
+    if(data&&data.error) return {ok:false,err:String(data.error)};
     let text='';
-    if(Array.isArray(data)&&data[0]&&data[0].generated_text) text=data[0].generated_text;
+    if(Array.isArray(data)&&data[0]?.generated_text) text=data[0].generated_text;
     else if(data.generated_text) text=data.generated_text;
     if(!text) return {ok:false,err:'Empty response'};
     return {ok:true,text}
